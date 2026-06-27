@@ -1,0 +1,81 @@
+name: sensory_wardrobe
+description: A sensory-aware wardrobe assistant app for individuals with sensory processing differences.
+version: 1.0.0+1
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # Navigation
+  go_router: ^13.2.1
+
+  # Local database
+  sqflite: ^2.3.3+1
+  path: ^1.9.0
+
+  # HTTP / API
+  http: ^1.2.1
+
+  # Secure storage (auth tokens, API keys)
+  flutter_secure_storage: ^9.0.0
+
+  # Push notifications
+  firebase_core: ^2.31.0
+  firebase_messaging: ^14.9.2
+  flutter_local_notifications: ^17.2.2
+
+  # Cloud backup (Firebase Storage / Firestore)
+  cloud_firestore: ^4.17.2
+  firebase_storage: ^11.7.4
+  firebase_auth: ^4.20.0
+
+  # Location (for weather fetching)
+  geolocator: ^11.0.0
+
+  # Image picker (clothing item photos)
+  image_picker: ^1.1.2
+  cached_network_image: ^3.3.1
+
+  # Shared preferences (lightweight settings)
+  shared_preferences: ^2.2.3
+
+  # Date/time utilities
+  intl: ^0.19.0
+
+  # Icons & UI extras
+  flutter_svg: ^2.0.10+1
+  lottie: ^3.1.2
+
+  # Fonts
+  google_fonts: ^6.2.1
+
+  # Encryption for backup
+  encrypt: ^5.0.3
+  pointycastle: ^3.9.1
+
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  build_runner: ^2.4.9
+  riverpod_generator: ^2.4.0
+  json_serializable: ^6.7.1
+  mockito: ^5.4.4
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/animations/
+
