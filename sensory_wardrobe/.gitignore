@@ -8,6 +8,10 @@
 build/
 pubspec.lock
 
+# Generated code (Riverpod, json_serializable, etc.)
+*.g.dart
+*.freezed.dart
+
 # Android
 android/local.properties
 android/.gradle/
@@ -28,10 +32,21 @@ ios/Pods/
 ios/.symlinks/
 ios/Runner.xcworkspace/
 
+# macOS
+macos/Flutter/ephemeral/
+macos/Pods/
+
+# Windows
+windows/flutter/ephemeral/
+
+# Linux
+linux/flutter/ephemeral/
+
 # Firebase — never commit real config files
 google-services.json
 GoogleService-Info.plist
 lib/firebase_options.dart
+firebase_app_id_file.json
 
 # Environment / secrets
 .env
@@ -43,9 +58,34 @@ weather_api_key.txt
 .idea/
 .vscode/
 *.iml
+*.swp
+*.swo
+*~
 
-# macOS
+# macOS system files
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 
 # Test coverage
 coverage/
+test/.test_coverage.dart
+
+# Miscellaneous
+*.log
+*.class
+*.lock
+doc/api/
+
+# Kiro specs (optional — uncomment if you don't want specs in git)
+# .kiro/
+
+# Claude / AI agent config (optional — uncomment to exclude)
+# .claude/
