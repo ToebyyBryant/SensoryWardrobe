@@ -84,6 +84,10 @@ test/.test_coverage.dart
 *.lock
 doc/api/
 
+# Time sheets
+BruceS_Time Sheet.xls
+*Time Sheet*.xls
+
 # Kiro specs (optional — uncomment if you don't want specs in git)
 # .kiro/
 
