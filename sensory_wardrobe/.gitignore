@@ -6,7 +6,6 @@
 .pub-cache/
 .pub/
 build/
-pubspec.lock
 
 # Generated code (Riverpod, json_serializable, etc.)
 *.g.dart
@@ -30,7 +29,6 @@ ios/Flutter/Generated.xcconfig
 ios/Flutter/ephemeral/
 ios/Pods/
 ios/.symlinks/
-ios/Runner.xcworkspace/
 
 # macOS
 macos/Flutter/ephemeral/
@@ -56,7 +54,6 @@ weather_api_key.txt
 
 # IDE
 .idea/
-.vscode/
 *.iml
 *.swp
 *.swo
@@ -81,12 +78,7 @@ test/.test_coverage.dart
 # Miscellaneous
 *.log
 *.class
-*.lock
 doc/api/
-
-# Time sheets
-BruceS_Time Sheet.xls
-*Time Sheet*.xls
 
 # Kiro specs (optional — uncomment if you don't want specs in git)
 # .kiro/
