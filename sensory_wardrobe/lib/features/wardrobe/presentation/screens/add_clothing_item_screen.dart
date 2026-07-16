@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../data/models/clothing_item_model.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../providers/wardrobe_providers.dart';
 
 /// P2.0 — Add / Edit a clothing item with sensory tags.
 class AddClothingItemScreen extends ConsumerStatefulWidget {
@@ -23,6 +27,7 @@ class _AddClothingItemScreenState
   int _warmthLevel = 3;
   final Set<String> _selectedTags = {};
   String? _photoPath;
+  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -32,9 +37,51 @@ class _AddClothingItemScreenState
     super.dispose();
   }
 
-  void _saveItem() {
+  Future<void> _saveItem() async {
     if (_formKey.currentState?.validate() ?? false) {
-      // TODO: dispatch to wardrobe notifier
+      final profile = ref.read(activeProfileProvider);
+      if (profile == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sign in required before adding items.')),
+        );
+        return;
+      }
+
+      setState(() => _isSaving = true);
+      try {
+        final now = DateTime.now();
+        final item = ClothingItemModel(
+          id: now.microsecondsSinceEpoch.toString(),
+          userId: profile.id,
+          name: _nameController.text.trim(),
+          category: _selectedCategory!,
+          fabric: _fabricController.text.trim().isEmpty
+              ? null
+              : _fabricController.text.trim(),
+          sensoryTags: _selectedTags.toList(),
+          warmthLevel: _warmthLevel,
+          photoPath: _photoPath,
+          notes: _notesController.text.trim().isEmpty
+              ? null
+              : _notesController.text.trim(),
+          createdAt: now,
+          updatedAt: now,
+        );
+
+        await ref.read(wardrobeItemsProvider.notifier).addItem(item);
+        if (mounted) {
+          context.pop();
+        }
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save item: $e')),
+        );
+      } finally {
+        if (mounted) {
+          setState(() => _isSaving = false);
+        }
+      }
     }
   }
 
@@ -136,8 +183,14 @@ class _AddClothingItemScreenState
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _saveItem,
-                  child: const Text('Save Item'),
+                  onPressed: _isSaving ? null : _saveItem,
+                  child: _isSaving
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Save Item'),
                 ),
               ),
             ],

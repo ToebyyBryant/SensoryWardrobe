@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../providers/outfit_log_providers.dart';
+import '../../data/models/comfort_rating_model.dart';
 
 /// P4.0 — Post-wear comfort rating (1–5, with sub-scores for texture/pressure/temperature).
 class ComfortRatingScreen extends ConsumerStatefulWidget {
@@ -18,6 +22,7 @@ class _ComfortRatingScreenState extends ConsumerState<ComfortRatingScreen> {
   int _pressureScore = 3;
   int _temperatureScore = 3;
   final _notesController = TextEditingController();
+  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -72,8 +77,64 @@ class _ComfortRatingScreenState extends ConsumerState<ComfortRatingScreen> {
     );
   }
 
-  void _saveRating() {
-    // TODO: dispatch comfort rating to provider
+  Future<void> _saveRating() async {
+    final profile = ref.read(activeProfileProvider);
+    if (profile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sign in required.')),
+      );
+      return;
+    }
+
+    final logs = ref.read(outfitLogsProvider).valueOrNull ?? [];
+    final logIdFromQuery = GoRouterState.of(context).uri.queryParameters['logId'];
+
+    String? outfitLogId = logIdFromQuery;
+    if (outfitLogId == null && logs.isNotEmpty) {
+      outfitLogId = logs.first.id;
+    }
+
+    if (outfitLogId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Log an outfit before rating comfort.')),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+    try {
+      final now = DateTime.now();
+      final rating = ComfortRatingModel(
+        id: now.microsecondsSinceEpoch.toString(),
+        outfitLogId: outfitLogId,
+        userId: profile.id,
+        overallScore: _overallScore,
+        textureScore: _textureScore,
+        pressureScore: _pressureScore,
+        temperatureScore: _temperatureScore,
+        notes: _notesController.text.trim().isEmpty
+            ? null
+            : _notesController.text.trim(),
+        ratedAt: now,
+      );
+
+      await ref.read(comfortRatingsProvider.notifier).saveRating(rating);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Comfort rating saved.')),
+        );
+        context.go('/history');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save rating: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
   }
 
   @override
@@ -128,8 +189,14 @@ class _ComfortRatingScreenState extends ConsumerState<ComfortRatingScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _saveRating,
-                child: const Text('Save Rating'),
+                onPressed: _isSaving ? null : _saveRating,
+                child: _isSaving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Save Rating'),
               ),
             ),
           ],

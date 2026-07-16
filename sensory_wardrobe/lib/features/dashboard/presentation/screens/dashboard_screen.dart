@@ -6,6 +6,7 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../shared/widgets/app_bottom_nav.dart';
 import '../../../weather/presentation/providers/weather_providers.dart';
+import '../../../suggestions/presentation/providers/suggestion_providers.dart';
 
 /// Home dashboard — weather summary, quick actions, today's suggestion.
 class DashboardScreen extends ConsumerWidget {
@@ -152,7 +153,8 @@ class _WeatherCard extends ConsumerWidget {
 class _SuggestionCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // TODO: watch suggestions provider
+    final topSuggestionAsync = ref.watch(topSuggestionProvider);
+
     return Card(
       color: AppColors.mint.withValues(alpha: 0.1),
       child: Padding(
@@ -168,10 +170,19 @@ class _SuggestionCard extends ConsumerWidget {
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const Text('Loading suggestions...'),
+            topSuggestionAsync.when(
+              loading: () => const Text('Loading suggestions...'),
+              error: (e, _) => Text('Suggestions unavailable: $e'),
+              data: (item) {
+                if (item == null) {
+                  return const Text('No suggestion yet. Add items and refresh weather.');
+                }
+                return Text('${item.name} (${item.category})');
+              },
+            ),
             const SizedBox(height: 8),
             TextButton(
-              onPressed: () {},
+              onPressed: () => context.go(AppRoutes.suggestions),
               child: const Text('See all suggestions →'),
             ),
           ],
