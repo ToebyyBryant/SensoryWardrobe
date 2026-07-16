@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sqflite/sqflite.dart';
 
 import '../models/user_profile_model.dart';
 import '../../../../core/database/database_helper.dart';

@@ -12,6 +12,7 @@ import '../../features/suggestions/presentation/screens/suggestions_screen.dart'
 import '../../features/history/presentation/screens/history_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/auth/presentation/providers/auth_providers.dart';
 
 part 'app_router.g.dart';
 
@@ -32,9 +33,36 @@ class AppRoutes {
 
 @riverpod
 GoRouter appRouter(AppRouterRef ref) {
+  final authState = ref.watch(authStateProvider);
+  final firebaseUser = authState.valueOrNull;
+  final activeProfile = ref.watch(activeProfileProvider);
+
+  if (!authState.isLoading && firebaseUser != null && activeProfile == null) {
+    ref.read(activeProfileProvider.notifier).loadProfile(firebaseUser.uid);
+  }
+
   return GoRouter(
     initialLocation: AppRoutes.dashboard,
     debugLogDiagnostics: true,
+    redirect: (context, state) {
+      if (authState.isLoading) {
+        return null;
+      }
+
+      final isLoggedIn = firebaseUser != null;
+      final isAuthRoute = state.matchedLocation == AppRoutes.login ||
+          state.matchedLocation == AppRoutes.register;
+
+      if (!isLoggedIn && !isAuthRoute) {
+        return AppRoutes.login;
+      }
+
+      if (isLoggedIn && isAuthRoute) {
+        return AppRoutes.dashboard;
+      }
+
+      return null;
+    },
     routes: [
       GoRoute(
         path: AppRoutes.login,
