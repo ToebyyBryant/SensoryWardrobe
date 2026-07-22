@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../data/models/user_profile_model.dart';
 import '../../data/repositories/auth_repository.dart';
+import '../../../../core/database/seed_data.dart';
 
 // ── Repository ────────────────────────────────────────────────────────────────
 
@@ -42,6 +43,10 @@ class ActiveProfileNotifier extends StateNotifier<UserProfileModel?> {
       password: password,
       displayName: displayName,
     );
+    // Seed example data for new users
+    if (state != null) {
+      await SeedData.seedIfNeeded(state!.id);
+    }
   }
 
   Future<void> login({

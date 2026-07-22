@@ -1,4 +1,3 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../../../../core/network/api_client.dart';
@@ -7,45 +6,35 @@ import '../../../../core/constants/app_constants.dart';
 import '../models/weather_snapshot_model.dart';
 
 /// P3.0 — Fetch & Store Weather Data
-/// Calls OpenWeatherMap API and caches results in DS5.
+/// Calls Open-Meteo API (free, no key required) and caches results in DS5.
 class WeatherRepository {
   final ApiClient _apiClient;
   final DatabaseHelper _db;
-  final FlutterSecureStorage _secureStorage;
 
   WeatherRepository({
     ApiClient? apiClient,
     DatabaseHelper? db,
-    FlutterSecureStorage? secureStorage,
   })  : _apiClient = apiClient ??
             ApiClient(baseUrl: AppConstants.weatherApiBaseUrl),
-        _db = db ?? DatabaseHelper(),
-        _secureStorage = secureStorage ?? const FlutterSecureStorage();
+        _db = db ?? DatabaseHelper();
 
   /// Fetch current weather for coordinates, cache and return snapshot.
   Future<WeatherSnapshotModel> fetchCurrentWeather({
     required double lat,
     required double lon,
   }) async {
-    final apiKey = await _secureStorage.read(
-      key: AppConstants.weatherApiKeyEnvVar,
-    );
-
-    if (apiKey == null || apiKey.isEmpty) {
-      throw Exception('Weather API key not configured. Set it in Settings.');
-    }
-
     final data = await _apiClient.get(
-      '/weather',
+      '/forecast',
       queryParams: {
-        'lat': lat.toString(),
-        'lon': lon.toString(),
-        'appid': apiKey,
-        'units': 'metric',
+        'latitude': lat.toString(),
+        'longitude': lon.toString(),
+        'current_weather': 'true',
+        'hourly': 'relative_humidity_2m,apparent_temperature',
+        'forecast_days': '1',
       },
     );
 
-    final snapshot = WeatherSnapshotModel.fromApiJson(data);
+    final snapshot = WeatherSnapshotModel.fromOpenMeteoJson(data, lat, lon);
     await _cacheSnapshot(snapshot);
     return snapshot;
   }

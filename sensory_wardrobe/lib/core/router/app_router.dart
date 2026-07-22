@@ -1,5 +1,6 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
@@ -13,8 +14,6 @@ import '../../features/history/presentation/screens/history_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
-
-part 'app_router.g.dart';
 
 /// Route name constants
 class AppRoutes {
@@ -31,21 +30,38 @@ class AppRoutes {
   static const profile = '/profile';
 }
 
-@riverpod
-GoRouter appRouter(AppRouterRef ref) {
-  final authState = ref.watch(authStateProvider);
-  final firebaseUser = authState.valueOrNull;
-  final activeProfile = ref.watch(activeProfileProvider);
-
-  if (!authState.isLoading && firebaseUser != null && activeProfile == null) {
-    ref.read(activeProfileProvider.notifier).loadProfile(firebaseUser.uid);
+/// A Listenable that notifies GoRouter to re-evaluate redirects
+/// whenever auth state or active profile changes.
+class _RouterNotifier extends ChangeNotifier {
+  _RouterNotifier(Ref ref) {
+    ref.listen(authStateProvider, (_, __) => notifyListeners());
+    ref.listen(activeProfileProvider, (_, __) => notifyListeners());
   }
+}
+
+final _routerNotifierProvider = Provider<_RouterNotifier>((ref) {
+  return _RouterNotifier(ref);
+});
+
+final appRouterProvider = Provider<GoRouter>((ref) {
+  final notifier = ref.watch(_routerNotifierProvider);
 
   return GoRouter(
     initialLocation: AppRoutes.dashboard,
     debugLogDiagnostics: true,
+    refreshListenable: notifier,
     redirect: (context, state) {
-      if (authState.isLoading) {
+      final authState = ref.read(authStateProvider);
+      final firebaseUser = authState.valueOrNull;
+      final activeProfile = ref.read(activeProfileProvider);
+
+      // Still loading auth — don't redirect yet
+      if (authState.isLoading) return null;
+
+      // Firebase user exists but local profile not loaded yet — trigger load
+      if (firebaseUser != null && activeProfile == null) {
+        ref.read(activeProfileProvider.notifier).loadProfile(firebaseUser.uid);
+        // Don't redirect while profile is loading
         return null;
       }
 
@@ -53,10 +69,12 @@ GoRouter appRouter(AppRouterRef ref) {
       final isAuthRoute = state.matchedLocation == AppRoutes.login ||
           state.matchedLocation == AppRoutes.register;
 
+      // Not logged in → force to login (unless already there)
       if (!isLoggedIn && !isAuthRoute) {
         return AppRoutes.login;
       }
 
+      // Logged in but on auth route → send to dashboard
       if (isLoggedIn && isAuthRoute) {
         return AppRoutes.dashboard;
       }
@@ -114,4 +132,4 @@ GoRouter appRouter(AppRouterRef ref) {
       ),
     ],
   );
-}
+});

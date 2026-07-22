@@ -35,6 +35,7 @@ class SettingsScreen extends ConsumerWidget {
     await schedule(selected.hour, selected.minute);
   }
 
+
   TimeOfDay _parseOrDefault(String? value, TimeOfDay fallback) {
     if (value == null || !value.contains(':')) return fallback;
     final parts = value.split(':');
@@ -156,10 +157,9 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           const ListTile(
-            leading: Icon(Icons.vpn_key_outlined),
-            title: Text('Weather API Key'),
-            subtitle: Text('Required for weather data'),
-            trailing: Icon(Icons.chevron_right),
+            leading: Icon(Icons.cloud_outlined),
+            title: Text('Weather Source'),
+            subtitle: Text('Open-Meteo (no API key required)'),
           ),
           const Divider(),
           const _SectionHeader('Data & Backup'),

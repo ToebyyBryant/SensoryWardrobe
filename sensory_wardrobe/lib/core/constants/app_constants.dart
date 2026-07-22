@@ -1,8 +1,8 @@
 /// App-wide constants.
 class AppConstants {
-  // OpenWeatherMap
-  static const weatherApiBaseUrl = 'https://api.openweathermap.org/data/2.5';
-  static const weatherApiKeyEnvVar = 'WEATHER_API_KEY'; // loaded from secure storage
+  // Open-Meteo (free, no API key required)
+  static const weatherApiBaseUrl = 'https://api.open-meteo.com/v1';
+  static const weatherApiKeyEnvVar = 'WEATHER_API_KEY'; // legacy, no longer needed
 
   // Database
   static const dbName = 'sensory_wardrobe.db';

@@ -30,7 +30,63 @@ class WeatherSnapshotModel {
     required this.fetchedAt,
   });
 
-  /// Construct from OpenWeatherMap API response JSON.
+  /// Construct from Open-Meteo API response JSON.
+  ///
+  /// Open-Meteo current_weather response shape:
+  /// {
+  ///   "current_weather": {
+  ///     "temperature": 22.3,
+  ///     "windspeed": 11.5,
+  ///     "weathercode": 2,
+  ///     "time": "2026-06-15T14:00"
+  ///   },
+  ///   "hourly": {
+  ///     "relative_humidity_2m": [65, 64, ...],
+  ///     "apparent_temperature": [20.1, 19.8, ...]
+  ///   }
+  /// }
+  factory WeatherSnapshotModel.fromOpenMeteoJson(
+    Map<String, dynamic> json,
+    double lat,
+    double lon,
+  ) {
+    final current = json['current_weather'] as Map<String, dynamic>;
+    final hourly = json['hourly'] as Map<String, dynamic>?;
+
+    // Get current hour index for hourly data
+    final now = DateTime.now();
+    final hourIndex = now.hour;
+
+    // Humidity from hourly data (current hour)
+    final humidityList = hourly?['relative_humidity_2m'] as List?;
+    final humidity = (humidityList != null && hourIndex < humidityList.length)
+        ? (humidityList[hourIndex] as num).toInt()
+        : 0;
+
+    // Feels-like from hourly apparent_temperature
+    final feelsLikeList = hourly?['apparent_temperature'] as List?;
+    final feelsLike = (feelsLikeList != null && hourIndex < feelsLikeList.length)
+        ? (feelsLikeList[hourIndex] as num).toDouble()
+        : (current['temperature'] as num).toDouble();
+
+    final weatherCode = (current['weathercode'] as num).toInt();
+
+    return WeatherSnapshotModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      locationLat: lat,
+      locationLon: lon,
+      locationName: null, // Open-Meteo doesn't return city name
+      temperatureC: (current['temperature'] as num).toDouble(),
+      feelsLikeC: feelsLike,
+      humidity: humidity,
+      condition: _weatherCodeToCondition(weatherCode),
+      conditionIcon: _weatherCodeToIcon(weatherCode),
+      windSpeedKph: (current['windspeed'] as num).toDouble(),
+      fetchedAt: DateTime.now(),
+    );
+  }
+
+  /// Legacy: Construct from OpenWeatherMap API response JSON.
   factory WeatherSnapshotModel.fromApiJson(Map<String, dynamic> json) {
     final main = json['main'] as Map<String, dynamic>;
     final weather =
@@ -82,4 +138,65 @@ class WeatherSnapshotModel {
         'wind_speed_kph': windSpeedKph,
         'fetched_at': fetchedAt.toIso8601String(),
       };
+
+  /// Map WMO weather codes to human-readable conditions.
+  /// https://open-meteo.com/en/docs#weathervariables
+  static String _weatherCodeToCondition(int code) {
+    switch (code) {
+      case 0:
+        return 'Clear sky';
+      case 1:
+        return 'Mainly clear';
+      case 2:
+        return 'Partly cloudy';
+      case 3:
+        return 'Overcast';
+      case 45:
+      case 48:
+        return 'Foggy';
+      case 51:
+      case 53:
+      case 55:
+        return 'Drizzle';
+      case 61:
+      case 63:
+      case 65:
+        return 'Rain';
+      case 66:
+      case 67:
+        return 'Freezing rain';
+      case 71:
+      case 73:
+      case 75:
+        return 'Snow';
+      case 77:
+        return 'Snow grains';
+      case 80:
+      case 81:
+      case 82:
+        return 'Rain showers';
+      case 85:
+      case 86:
+        return 'Snow showers';
+      case 95:
+        return 'Thunderstorm';
+      case 96:
+      case 99:
+        return 'Thunderstorm with hail';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  /// Map WMO weather codes to material icon names for UI display.
+  static String _weatherCodeToIcon(int code) {
+    if (code == 0 || code == 1) return 'sunny';
+    if (code == 2) return 'partly_cloudy';
+    if (code == 3) return 'cloudy';
+    if (code == 45 || code == 48) return 'foggy';
+    if (code >= 51 && code <= 67) return 'rainy';
+    if (code >= 71 && code <= 86) return 'snowy';
+    if (code >= 95) return 'thunderstorm';
+    return 'cloudy';
+  }
 }

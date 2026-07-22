@@ -9,11 +9,28 @@ import '../../../weather/presentation/providers/weather_providers.dart';
 import '../../../suggestions/presentation/providers/suggestion_providers.dart';
 
 /// Home dashboard — weather summary, quick actions, today's suggestion.
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Auto-fetch weather on dashboard load if no cached data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final weather = ref.read(currentWeatherProvider);
+      if (weather.valueOrNull == null) {
+        ref.read(currentWeatherProvider.notifier).refresh();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sensory Wardrobe'),
