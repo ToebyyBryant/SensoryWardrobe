@@ -55,6 +55,9 @@ dependencies:
   flutter_svg: ^2.0.10+1
   lottie: ^3.1.2
 
+  # Charts (comfort trend visualization)
+  fl_chart: ^0.68.0
+
   # Fonts
   google_fonts: ^6.2.1
 
