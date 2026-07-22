@@ -40,10 +40,10 @@ windows/flutter/ephemeral/
 # Linux
 linux/flutter/ephemeral/
 
-# Firebase — never commit real config files
-google-services.json
-GoogleService-Info.plist
-lib/firebase_options.dart
+# Firebase — keep config files for team collaboration
+# google-services.json
+# GoogleService-Info.plist
+# lib/firebase_options.dart
 firebase_app_id_file.json
 
 # Environment / secrets
