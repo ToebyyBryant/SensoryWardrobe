@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 
 /// DS1: User Profiles data model.
@@ -26,12 +28,22 @@ class UserProfileModel {
   });
 
   factory UserProfileModel.fromMap(Map<String, dynamic> map) {
+    Map<String, dynamic>? sensoryPrefs;
+    if (map['sensory_preferences'] != null) {
+      final raw = map['sensory_preferences'] as String;
+      if (raw.isNotEmpty) {
+        sensoryPrefs =
+            Map<String, dynamic>.from(_decodeJson(raw) as Map);
+      }
+    }
+
     return UserProfileModel(
       id: map['id'] as String,
       displayName: map['display_name'] as String,
       email: map['email'] as String?,
       isDependent: (map['is_dependent'] as int) == 1,
       caregiverId: map['caregiver_id'] as String?,
+      sensoryPreferences: sensoryPrefs,
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );
@@ -43,9 +55,20 @@ class UserProfileModel {
         'email': email,
         'is_dependent': isDependent ? 1 : 0,
         'caregiver_id': caregiverId,
+        'sensory_preferences':
+            sensoryPreferences != null ? _encodeJson(sensoryPreferences) : null,
         'created_at': createdAt.toIso8601String(),
         'updated_at': updatedAt.toIso8601String(),
       };
+
+  static dynamic _decodeJson(String raw) {
+    return jsonDecode(raw);
+  }
+
+  static String? _encodeJson(dynamic value) {
+    if (value == null) return null;
+    return jsonEncode(value);
+  }
 
   UserProfileModel copyWith({
     String? displayName,

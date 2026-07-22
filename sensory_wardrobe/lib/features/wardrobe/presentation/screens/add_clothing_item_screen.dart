@@ -88,7 +88,13 @@ class _AddClothingItemScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Clothing Item')),
+      appBar: AppBar(
+        title: const Text('Add Clothing Item'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/wardrobe'),
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(

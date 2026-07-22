@@ -140,7 +140,13 @@ class _ComfortRatingScreenState extends ConsumerState<ComfortRatingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Rate Comfort')),
+      appBar: AppBar(
+        title: const Text('Rate Comfort'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/'),
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(

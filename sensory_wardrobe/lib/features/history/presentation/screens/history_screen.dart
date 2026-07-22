@@ -78,18 +78,19 @@ class _OutfitHistoryTab extends ConsumerWidget {
           separatorBuilder: (_, __) => const SizedBox(height: 8),
           itemBuilder: (context, index) {
             final entry = entries[index];
-            final rating = entry.rating?.overallScore;
+            final rating = entry.rating;
+            final overallScore = rating?.overallScore;
             final dateStr = DateFormat.yMMMd()
                 .format(entry.log.loggedDate.toLocal());
 
             return Card(
-              child: ListTile(
+              child: ExpansionTile(
                 leading: CircleAvatar(
-                  backgroundColor: rating != null
-                      ? _scoreColor(rating)
+                  backgroundColor: overallScore != null
+                      ? _scoreColor(overallScore)
                       : AppColors.cardBorder,
                   child: Text(
-                    rating?.toString() ?? '—',
+                    overallScore?.toString() ?? '—',
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -101,22 +102,113 @@ class _OutfitHistoryTab extends ConsumerWidget {
                   '${entry.log.itemIds.length} items'
                   '${entry.log.notes != null && entry.log.notes!.isNotEmpty ? ' • ${entry.log.notes}' : ''}',
                 ),
-                trailing: rating != null
+                trailing: overallScore != null
                     ? Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: List.generate(
-                          5,
-                          (i) => Icon(
-                            i < rating ? Icons.star : Icons.star_border,
-                            size: 14,
-                            color: AppColors.teal,
+                        children: [
+                          ...List.generate(
+                            5,
+                            (i) => Icon(
+                              i < overallScore
+                                  ? Icons.star
+                                  : Icons.star_border,
+                              size: 14,
+                              color: AppColors.teal,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.expand_more, size: 20),
+                        ],
+                      )
+                    : const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Not rated',
+                            style: TextStyle(color: AppColors.textMuted),
+                          ),
+                          SizedBox(width: 4),
+                          Icon(Icons.expand_more, size: 20),
+                        ],
+                      ),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Divider(),
+                        const SizedBox(height: 8),
+
+                        // Items worn
+                        Text(
+                          'Items Worn',
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        ...entry.log.itemIds.map(
+                          (id) => Padding(
+                            padding: const EdgeInsets.only(left: 8, bottom: 2),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.checkroom_outlined,
+                                    size: 14, color: AppColors.textMuted),
+                                const SizedBox(width: 6),
+                                Text(id,
+                                    style: const TextStyle(fontSize: 13)),
+                              ],
+                            ),
                           ),
                         ),
-                      )
-                    : const Text(
-                        'Not rated',
-                        style: TextStyle(color: AppColors.textMuted),
-                      ),
+
+                        // Comfort sub-scores
+                        if (rating != null) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            'Comfort Scores',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          _ScoreRow(
+                              label: 'Overall', score: rating.overallScore),
+                          if (rating.textureScore != null)
+                            _ScoreRow(
+                                label: 'Texture',
+                                score: rating.textureScore!),
+                          if (rating.pressureScore != null)
+                            _ScoreRow(
+                                label: 'Pressure',
+                                score: rating.pressureScore!),
+                          if (rating.temperatureScore != null)
+                            _ScoreRow(
+                                label: 'Temperature',
+                                score: rating.temperatureScore!),
+                        ],
+
+                        // Notes
+                        if (entry.log.notes != null &&
+                            entry.log.notes!.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            'Notes',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(entry.log.notes!),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
               ),
             );
           },
@@ -365,6 +457,47 @@ class _ComfortChart extends StatelessWidget {
             },
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ScoreRow extends StatelessWidget {
+  final String label;
+  final int score;
+
+  const _ScoreRow({required this.label, required this.score});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, bottom: 4),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 90,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ),
+          ...List.generate(
+            5,
+            (i) => Icon(
+              i < score ? Icons.circle : Icons.circle_outlined,
+              size: 10,
+              color: i < score ? AppColors.teal : AppColors.cardBorder,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            '$score/5',
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          ),
+        ],
       ),
     );
   }

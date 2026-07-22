@@ -19,8 +19,12 @@ final outfitHistoryProvider =
   final profile = ref.watch(activeProfileProvider);
   if (profile == null) return [];
 
+  // Watch the logs provider so history refreshes when a new log is saved
+  final logsAsync = ref.watch(outfitLogsProvider);
+  final logs = logsAsync.valueOrNull;
+  if (logs == null) return [];
+
   final repo = ref.watch(outfitLogRepositoryProvider);
-  final logs = await repo.getLogsForUser(profile.id);
 
   // Fetch rating for each log in parallel
   final entries = await Future.wait(

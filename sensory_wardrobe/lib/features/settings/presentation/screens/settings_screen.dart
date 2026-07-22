@@ -57,7 +57,13 @@ class SettingsScreen extends ConsumerWidget {
     final backupState = ref.watch(backupNotifierProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(
+        title: const Text('Settings'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/'),
+        ),
+      ),
       body: ListView(
         children: [
           const _SectionHeader('Notifications'),
@@ -186,12 +192,16 @@ class SettingsScreen extends ConsumerWidget {
           const ListTile(
             leading: Icon(Icons.text_increase_outlined),
             title: Text('Large Text'),
+            subtitle: Text('Coming soon'),
             trailing: Switch(value: false, onChanged: null),
+            enabled: false,
           ),
           const ListTile(
             leading: Icon(Icons.contrast_outlined),
             title: Text('High Contrast Mode'),
+            subtitle: Text('Coming soon'),
             trailing: Switch(value: false, onChanged: null),
+            enabled: false,
           ),
           const Divider(),
           const _SectionHeader('Account'),
